@@ -1,0 +1,733 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Power BI Crash Course</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0a0f;
+    --surface: #111118;
+    --surface2: #1a1a24;
+    --accent: #f5a623;
+    --accent2: #e85d4a;
+    --accent3: #4acfe8;
+    --text: #e8e8f0;
+    --muted: #7070a0;
+    --border: #2a2a3a;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Mono', monospace;
+    font-size: 14px;
+    line-height: 1.7;
+    min-height: 100vh;
+  }
+
+  /* Animated grid background */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: 
+      linear-gradient(rgba(245,166,35,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(245,166,35,0.03) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .wrapper {
+    max-width: 860px;
+    margin: 0 auto;
+    padding: 60px 24px 100px;
+    position: relative;
+    z-index: 1;
+  }
+
+  /* Header */
+  .hero {
+    margin-bottom: 64px;
+    animation: fadeUp 0.8s ease both;
+  }
+
+  .hero-label {
+    font-size: 11px;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .hero-label::after {
+    content: '';
+    display: block;
+    height: 1px;
+    width: 60px;
+    background: var(--accent);
+    opacity: 0.5;
+  }
+
+  h1 {
+    font-family: 'Syne', sans-serif;
+    font-size: clamp(42px, 7vw, 72px);
+    font-weight: 800;
+    line-height: 0.95;
+    letter-spacing: -0.03em;
+    margin-bottom: 20px;
+    color: var(--text);
+  }
+
+  h1 span {
+    color: var(--accent);
+    display: block;
+  }
+
+  .hero-sub {
+    color: var(--muted);
+    font-size: 13px;
+    max-width: 420px;
+    line-height: 1.8;
+  }
+
+  /* Progress bar */
+  .progress-row {
+    display: flex;
+    gap: 4px;
+    margin-top: 28px;
+  }
+
+  .prog-seg {
+    height: 3px;
+    flex: 1;
+    border-radius: 2px;
+    background: var(--border);
+    overflow: hidden;
+  }
+
+  .prog-seg-fill {
+    height: 100%;
+    background: var(--accent);
+    animation: fillBar 1.2s ease both;
+  }
+
+  .prog-seg:nth-child(1) .prog-seg-fill { animation-delay: 0.2s; }
+  .prog-seg:nth-child(2) .prog-seg-fill { animation-delay: 0.35s; }
+  .prog-seg:nth-child(3) .prog-seg-fill { animation-delay: 0.5s; }
+  .prog-seg:nth-child(4) .prog-seg-fill { animation-delay: 0.65s; }
+  .prog-seg:nth-child(5) .prog-seg-fill { animation-delay: 0.8s; }
+  .prog-seg:nth-child(6) .prog-seg-fill { animation-delay: 0.95s; }
+
+  @keyframes fillBar {
+    from { width: 0; }
+    to { width: 100%; }
+  }
+
+  /* Section */
+  .section {
+    margin-bottom: 48px;
+    animation: fadeUp 0.6s ease both;
+  }
+
+  .section:nth-child(2) { animation-delay: 0.1s; }
+  .section:nth-child(3) { animation-delay: 0.2s; }
+  .section:nth-child(4) { animation-delay: 0.3s; }
+  .section:nth-child(5) { animation-delay: 0.4s; }
+  .section:nth-child(6) { animation-delay: 0.5s; }
+
+  .section-header {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 20px;
+  }
+
+  .section-num {
+    font-family: 'Syne', sans-serif;
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--accent);
+    background: rgba(245,166,35,0.1);
+    border: 1px solid rgba(245,166,35,0.2);
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    border-radius: 4px;
+  }
+
+  h2 {
+    font-family: 'Syne', sans-serif;
+    font-size: 20px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    color: var(--text);
+  }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 24px 28px;
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+
+  .card:hover {
+    border-color: rgba(245,166,35,0.3);
+    box-shadow: 0 0 30px rgba(245,166,35,0.05);
+  }
+
+  p { color: var(--muted); margin-bottom: 12px; }
+  p:last-child { margin-bottom: 0; }
+  p strong { color: var(--text); font-weight: 500; }
+
+  /* Two-col grid */
+  .grid-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+
+  @media(max-width: 600px) { .grid-2 { grid-template-columns: 1fr; } }
+
+  .mini-card {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 16px 18px;
+    transition: transform 0.15s, border-color 0.2s;
+  }
+
+  .mini-card:hover {
+    transform: translateY(-2px);
+    border-color: rgba(74,207,232,0.3);
+  }
+
+  .mini-card-label {
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--accent3);
+    margin-bottom: 8px;
+    font-weight: 500;
+  }
+
+  .mini-card p {
+    font-size: 13px;
+    margin: 0;
+  }
+
+  /* Code block */
+  .code-block {
+    background: #0d0d15;
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--accent3);
+    border-radius: 6px;
+    padding: 18px 20px;
+    font-size: 13px;
+    overflow-x: auto;
+    margin-top: 14px;
+  }
+
+  .code-comment { color: #5a5a7a; }
+  .code-keyword { color: var(--accent); }
+  .code-fn { color: var(--accent3); }
+  .code-str { color: #8bc34a; }
+  .code-num { color: var(--accent2); }
+
+  /* Steps */
+  .steps {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+  }
+
+  .step {
+    display: flex;
+    gap: 18px;
+    padding: 16px 0;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .step:last-child { border-bottom: none; }
+
+  .step-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--accent);
+    margin-top: 7px;
+    flex-shrink: 0;
+    box-shadow: 0 0 10px rgba(245,166,35,0.5);
+  }
+
+  .step-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 4px;
+  }
+
+  .step-body { color: var(--muted); font-size: 13px; }
+
+  /* Pill tags */
+  .tags { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 16px; }
+  .tag {
+    font-size: 11px;
+    letter-spacing: 0.05em;
+    padding: 5px 12px;
+    border-radius: 100px;
+    border: 1px solid;
+    font-weight: 500;
+  }
+  .tag-y { color: var(--accent); border-color: rgba(245,166,35,0.3); background: rgba(245,166,35,0.06); }
+  .tag-r { color: var(--accent2); border-color: rgba(232,93,74,0.3); background: rgba(232,93,74,0.06); }
+  .tag-b { color: var(--accent3); border-color: rgba(74,207,232,0.3); background: rgba(74,207,232,0.06); }
+
+  /* Comparison table */
+  .table-wrap { overflow-x: auto; }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+  }
+  th {
+    text-align: left;
+    padding: 10px 14px;
+    font-family: 'Syne', sans-serif;
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted);
+    border-bottom: 1px solid var(--border);
+    font-weight: 600;
+  }
+  td {
+    padding: 12px 14px;
+    border-bottom: 1px solid rgba(42,42,58,0.5);
+    color: var(--muted);
+    vertical-align: top;
+  }
+  td:first-child { color: var(--text); font-weight: 500; }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: rgba(255,255,255,0.015); }
+
+  /* Tip callout */
+  .tip {
+    border: 1px solid rgba(74,207,232,0.2);
+    background: rgba(74,207,232,0.04);
+    border-radius: 6px;
+    padding: 14px 18px;
+    margin-top: 16px;
+    font-size: 13px;
+    color: var(--accent3);
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+  }
+
+  .tip-icon { flex-shrink: 0; margin-top: 1px; opacity: 0.7; }
+
+  /* Footer */
+  .footer {
+    margin-top: 72px;
+    padding-top: 24px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: gap;
+    font-size: 11px;
+    color: var(--muted);
+    letter-spacing: 0.05em;
+  }
+
+  .footer-badge {
+    background: rgba(245,166,35,0.1);
+    border: 1px solid rgba(245,166,35,0.2);
+    color: var(--accent);
+    padding: 5px 12px;
+    border-radius: 4px;
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+  }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* Divider */
+  .divider {
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--border), transparent);
+    margin: 8px 0 20px;
+  }
+</style>
+</head>
+<body>
+<div class="wrapper">
+
+  <!-- Hero -->
+  <div class="hero">
+    <div class="hero-label">Crash Course</div>
+    <h1>Power<span>BI</span></h1>
+    <p class="hero-sub">Everything you need to go from zero to building real dashboards — fast.</p>
+    <div class="progress-row">
+      <div class="prog-seg"><div class="prog-seg-fill"></div></div>
+      <div class="prog-seg"><div class="prog-seg-fill"></div></div>
+      <div class="prog-seg"><div class="prog-seg-fill"></div></div>
+      <div class="prog-seg"><div class="prog-seg-fill"></div></div>
+      <div class="prog-seg"><div class="prog-seg-fill"></div></div>
+      <div class="prog-seg"><div class="prog-seg-fill"></div></div>
+    </div>
+  </div>
+
+  <!-- 01 What is Power BI -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-num">01</div>
+      <h2>What is Power BI?</h2>
+    </div>
+    <div class="card">
+      <p>Power BI is Microsoft's <strong>business intelligence platform</strong> — a suite of tools that lets you connect to data, transform it, build data models, and create interactive visual reports and dashboards.</p>
+      <p>It sits at the intersection of Excel's familiarity and enterprise-grade analytics. Widely used by analysts, data teams, and business users across industries.</p>
+      <div class="tags">
+        <span class="tag tag-y">Self-service BI</span>
+        <span class="tag tag-y">Data Modeling</span>
+        <span class="tag tag-y">Interactive Dashboards</span>
+        <span class="tag tag-b">Cloud + Desktop</span>
+        <span class="tag tag-b">Microsoft Ecosystem</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- 02 The Three Components -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-num">02</div>
+      <h2>The Three Core Components</h2>
+    </div>
+    <div class="grid-2">
+      <div class="mini-card">
+        <div class="mini-card-label">Power BI Desktop</div>
+        <p>Free Windows app where you build everything — connect data, transform it, model it, and design reports.</p>
+      </div>
+      <div class="mini-card">
+        <div class="mini-card-label">Power BI Service</div>
+        <p>Cloud platform (app.powerbi.com) for publishing, sharing, and collaborating on reports and dashboards.</p>
+      </div>
+      <div class="mini-card">
+        <div class="mini-card-label">Power BI Mobile</div>
+        <p>iOS/Android app to view and interact with published reports on the go.</p>
+      </div>
+      <div class="mini-card">
+        <div class="mini-card-label">Power BI Gateway</div>
+        <p>Bridge that keeps cloud datasets refreshed from on-premise data sources automatically.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- 03 The Workflow -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-num">03</div>
+      <h2>The Core Workflow</h2>
+    </div>
+    <div class="card">
+      <div class="steps">
+        <div class="step">
+          <div class="step-dot"></div>
+          <div>
+            <div class="step-title">1 · Connect to Data</div>
+            <div class="step-body">Use <strong>Get Data</strong> to connect to 100+ sources — Excel, SQL Server, Sharepoint, REST APIs, Salesforce, Azure, Google Analytics, and more.</div>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-dot"></div>
+          <div>
+            <div class="step-title">2 · Transform with Power Query</div>
+            <div class="step-body">The <strong>Power Query Editor</strong> is a visual ETL tool. Clean nulls, rename columns, merge tables, unpivot, change types — all tracked as repeatable steps.</div>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-dot"></div>
+          <div>
+            <div class="step-title">3 · Build a Data Model</div>
+            <div class="step-body">Define <strong>relationships</strong> between tables in the Model view. One-to-many, many-to-many. This is where star schemas live.</div>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-dot"></div>
+          <div>
+            <div class="step-title">4 · Write DAX Measures</div>
+            <div class="step-body">Create calculated <strong>measures and columns</strong> using DAX (Data Analysis Expressions) — aggregations, ratios, running totals, and time intelligence.</div>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-dot"></div>
+          <div>
+            <div class="step-title">5 · Design Reports</div>
+            <div class="step-body">Drag fields onto a canvas to create <strong>bar charts, tables, maps, cards, slicers</strong>. All visuals cross-filter each other by default.</div>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-dot"></div>
+          <div>
+            <div class="step-title">6 · Publish & Share</div>
+            <div class="step-body">Publish to <strong>Power BI Service</strong>. Share via links, embed in Teams/SharePoint, schedule dataset refreshes, or create Dashboards by pinning visuals.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 04 Power Query -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-num">04</div>
+      <h2>Power Query (M Language)</h2>
+    </div>
+    <div class="card">
+      <p>Power Query records every transformation as a step, generating <strong>M code</strong> behind the scenes. Most transformations are done through the GUI — you rarely need to write M manually.</p>
+      <p><strong>Key operations:</strong> Remove duplicates, filter rows, split columns, merge/append queries, pivot/unpivot, group by, add custom columns, change data types.</p>
+      <div class="code-block">
+<span class="code-comment">// Example: Custom column formula in M</span>
+<br><span class="code-keyword">let</span>
+<br>&nbsp;&nbsp;Source = <span class="code-fn">Excel.Workbook</span>(File.Contents(<span class="code-str">"data.xlsx"</span>)),
+<br>&nbsp;&nbsp;Sheet = Source{[Name=<span class="code-str">"Sales"</span>]}[Data],
+<br>&nbsp;&nbsp;Typed = <span class="code-fn">Table.TransformColumnTypes</span>(Sheet,
+<br>&nbsp;&nbsp;&nbsp;&nbsp;{{"Date", type date}, {"Amount", type number}}),
+<br>&nbsp;&nbsp;Filtered = <span class="code-fn">Table.SelectRows</span>(Typed, <span class="code-keyword">each</span> [Amount] > <span class="code-num">0</span>)
+<br><span class="code-keyword">in</span>
+<br>&nbsp;&nbsp;Filtered
+      </div>
+      <div class="tip">
+        <span class="tip-icon">→</span>
+        Keep Power Query for shaping data. Don't do calculations here — save that for DAX measures in the model.
+      </div>
+    </div>
+  </div>
+
+  <!-- 05 DAX -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-num">05</div>
+      <h2>DAX Essentials</h2>
+    </div>
+    <div class="card">
+      <p><strong>DAX</strong> (Data Analysis Expressions) is the formula language for Power BI, SSAS, and Excel Power Pivot. It operates on tables and columns, not cells.</p>
+
+      <div class="divider"></div>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>Function</th><th>Purpose</th><th>Example</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>CALCULATE</td><td>Modify filter context</td><td>CALCULATE([Sales], Region="East")</td></tr>
+            <tr><td>SUMX</td><td>Row-by-row summation</td><td>SUMX(Orders, [Qty]*[Price])</td></tr>
+            <tr><td>FILTER</td><td>Return filtered table</td><td>FILTER(Products, [Price]>100)</td></tr>
+            <tr><td>ALL</td><td>Remove filters</td><td>ALL(DimDate[Year])</td></tr>
+            <tr><td>RELATED</td><td>Lookup across relation</td><td>RELATED(Customer[Region])</td></tr>
+            <tr><td>DATEYTD</td><td>Year-to-date dates</td><td>TOTALYTD([Sales], Date[Date])</td></tr>
+            <tr><td>DIVIDE</td><td>Safe division</td><td>DIVIDE([Profit], [Revenue], 0)</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="code-block">
+<span class="code-comment">// Measure: % of Total Sales</span>
+<br>% of Total = 
+<br>&nbsp;&nbsp;<span class="code-fn">DIVIDE</span>(
+<br>&nbsp;&nbsp;&nbsp;&nbsp;<span class="code-fn">SUM</span>(Sales[Amount]),
+<br>&nbsp;&nbsp;&nbsp;&nbsp;<span class="code-fn">CALCULATE</span>(<span class="code-fn">SUM</span>(Sales[Amount]), <span class="code-fn">ALL</span>(Sales)),
+<br>&nbsp;&nbsp;&nbsp;&nbsp;<span class="code-num">0</span>
+<br>&nbsp;&nbsp;)
+      </div>
+    </div>
+  </div>
+
+  <!-- 06 Data Modeling -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-num">06</div>
+      <h2>Data Modeling Basics</h2>
+    </div>
+    <div class="card">
+      <p>A good model is everything. The <strong>Star Schema</strong> is the gold standard — one central fact table surrounded by dimension tables.</p>
+      <div class="grid-2" style="margin-top:16px;">
+        <div class="mini-card">
+          <div class="mini-card-label">Fact Tables</div>
+          <p>Store transactions/events. High row count. Numeric measures (sales, quantity, cost). Example: FactSales.</p>
+        </div>
+        <div class="mini-card">
+          <div class="mini-card-label">Dimension Tables</div>
+          <p>Descriptive context. Low row count. Text attributes. Example: DimDate, DimCustomer, DimProduct.</p>
+        </div>
+      </div>
+      <div class="tip" style="margin-top:16px;">
+        <span class="tip-icon">→</span>
+        Always create a <strong>separate Date table</strong> marked as a date table. Use CALENDARAUTO() or a custom M query. This unlocks all time intelligence functions.
+      </div>
+    </div>
+  </div>
+
+  <!-- 07 Visuals & Reports -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-num">07</div>
+      <h2>Visuals & Report Design</h2>
+    </div>
+    <div class="card">
+      <p>The report canvas uses a <strong>drag-and-drop</strong> interface. Visuals auto-cross-filter on click. Slicers filter everything on the page.</p>
+      <div class="tags" style="margin-bottom:16px;">
+        <span class="tag tag-y">Bar / Column</span>
+        <span class="tag tag-y">Line Chart</span>
+        <span class="tag tag-y">Card / KPI</span>
+        <span class="tag tag-b">Matrix / Table</span>
+        <span class="tag tag-b">Map (Filled/Bubble)</span>
+        <span class="tag tag-b">Treemap / Donut</span>
+        <span class="tag tag-r">Decomposition Tree</span>
+        <span class="tag tag-r">Key Influencers</span>
+        <span class="tag tag-r">Custom AppSource Visuals</span>
+      </div>
+      <p><strong>Report vs Dashboard:</strong> Reports are multi-page, interactive, built in Desktop. Dashboards (in Service) are single-page, pin-based, and update in real time.</p>
+      <p><strong>Drill-through</strong> lets users right-click a data point and navigate to a detail page filtered to that value. <strong>Bookmarks</strong> capture page state for interactive storytelling.</p>
+    </div>
+  </div>
+
+  <!-- 08 Power BI Service -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-num">08</div>
+      <h2>Power BI Service & Sharing</h2>
+    </div>
+    <div class="card">
+      <div class="steps">
+        <div class="step">
+          <div class="step-dot"></div>
+          <div>
+            <div class="step-title">Workspaces</div>
+            <div class="step-body">Team containers for reports, datasets, and dashboards. My Workspace is personal; create shared workspaces for collaboration.</div>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-dot"></div>
+          <div>
+            <div class="step-title">Scheduled Refresh</div>
+            <div class="step-body">Set datasets to auto-refresh up to 8x/day (Pro) or 48x/day (Premium). Requires a Gateway for on-prem sources.</div>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-dot"></div>
+          <div>
+            <div class="step-title">Row-Level Security (RLS)</div>
+            <div class="step-body">Restrict which data users see by defining DAX-based roles. A sales rep sees only their own region's data.</div>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-dot"></div>
+          <div>
+            <div class="step-title">Apps</div>
+            <div class="step-body">Package a workspace's content into a polished App for distribution to a large audience without giving them edit access.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 09 Licensing -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-num">09</div>
+      <h2>Licensing Tiers</h2>
+    </div>
+    <div class="card">
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>Tier</th><th>Cost</th><th>Use Case</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Desktop</td><td>Free</td><td>Build locally, no sharing</td></tr>
+            <tr><td>Pro</td><td>~$10/user/mo</td><td>Share with other Pro users in Service</td></tr>
+            <tr><td>Premium Per User</td><td>~$20/user/mo</td><td>Larger models, paginated reports, AI features</td></tr>
+            <tr><td>Premium (Capacity)</td><td>From $5K+/mo</td><td>Org-wide sharing without per-user licenses, larger scale</td></tr>
+            <tr><td>Fabric</td><td>Capacity-based</td><td>Full unified analytics platform (includes Power BI)</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- 10 Tips -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-num">10</div>
+      <h2>Pro Tips to Level Up Fast</h2>
+    </div>
+    <div class="card">
+      <div class="steps">
+        <div class="step">
+          <div class="step-dot"></div>
+          <div>
+            <div class="step-title">Use Import mode by default</div>
+            <div class="step-body">Data is cached in-memory for fast performance. Use DirectQuery only when data must be real-time and the source can handle the load.</div>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-dot"></div>
+          <div>
+            <div class="step-title">Never use VLOOKUP logic — use relationships</div>
+            <div class="step-body">Properly related tables + RELATED() beats adding lookup columns. It's faster, cleaner, and more flexible.</div>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-dot"></div>
+          <div>
+            <div class="step-title">Learn filter context vs row context</div>
+            <div class="step-body">The single most important DAX concept. Understanding when a formula evaluates row-by-row vs. at an aggregate level unlocks everything.</div>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-dot"></div>
+          <div>
+            <div class="step-title">Use measures, not calculated columns, for aggregations</div>
+            <div class="step-body">Measures are computed at query time in filter context. Calculated columns are computed at refresh and bloat your model size.</div>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-dot"></div>
+          <div>
+            <div class="step-title">Enable Performance Analyzer</div>
+            <div class="step-body">View > Performance Analyzer shows how long each visual takes to render. Spot and fix slow DAX queries immediately.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <div class="footer">
+    <span>POWER BI CRASH COURSE · 2026</span>
+    <span class="footer-badge">10 MODULES</span>
+  </div>
+
+</div>
+</body>
+</html>
