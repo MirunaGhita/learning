@@ -1,0 +1,734 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DAX Crash Course</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0a0f;
+    --surface: #111118;
+    --surface2: #1a1a24;
+    --accent: #f5a623;
+    --accent2: #e85d4a;
+    --accent3: #4acfe8;
+    --text: #e8e8f0;
+    --muted: #7070a0;
+    --border: #2a2a3a;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Mono', monospace;
+    font-size: 14px;
+    line-height: 1.7;
+    min-height: 100vh;
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(245,166,35,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(245,166,35,0.03) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .wrapper {
+    max-width: 860px;
+    margin: 0 auto;
+    padding: 60px 24px 100px;
+    position: relative;
+    z-index: 1;
+  }
+
+  .hero { margin-bottom: 64px; animation: fadeUp 0.8s ease both; }
+
+  .hero-label {
+    font-size: 11px;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .hero-label::after {
+    content: '';
+    display: block;
+    height: 1px;
+    width: 60px;
+    background: var(--accent);
+    opacity: 0.5;
+  }
+
+  h1 {
+    font-family: 'Syne', sans-serif;
+    font-size: clamp(42px, 7vw, 72px);
+    font-weight: 800;
+    line-height: 0.95;
+    letter-spacing: -0.03em;
+    margin-bottom: 20px;
+    color: var(--text);
+  }
+
+  h1 span { color: var(--accent); display: block; }
+
+  .hero-sub { color: var(--muted); font-size: 13px; max-width: 480px; line-height: 1.8; }
+
+  .progress-row { display: flex; gap: 4px; margin-top: 28px; }
+
+  .prog-seg { height: 3px; flex: 1; border-radius: 2px; background: var(--border); overflow: hidden; }
+
+  .prog-seg-fill { height: 100%; background: var(--accent); animation: fillBar 1.2s ease both; }
+  .prog-seg:nth-child(1)  .prog-seg-fill { animation-delay: 0.10s; }
+  .prog-seg:nth-child(2)  .prog-seg-fill { animation-delay: 0.20s; }
+  .prog-seg:nth-child(3)  .prog-seg-fill { animation-delay: 0.30s; }
+  .prog-seg:nth-child(4)  .prog-seg-fill { animation-delay: 0.40s; }
+  .prog-seg:nth-child(5)  .prog-seg-fill { animation-delay: 0.50s; }
+  .prog-seg:nth-child(6)  .prog-seg-fill { animation-delay: 0.60s; }
+  .prog-seg:nth-child(7)  .prog-seg-fill { animation-delay: 0.70s; }
+  .prog-seg:nth-child(8)  .prog-seg-fill { animation-delay: 0.80s; }
+  .prog-seg:nth-child(9)  .prog-seg-fill { animation-delay: 0.90s; }
+  .prog-seg:nth-child(10) .prog-seg-fill { animation-delay: 1.00s; }
+
+  @keyframes fillBar { from { width: 0; } to { width: 100%; } }
+
+  .section { margin-bottom: 48px; animation: fadeUp 0.6s ease both; }
+
+  .section-header { display: flex; align-items: center; gap: 14px; margin-bottom: 20px; }
+
+  .section-num {
+    font-family: 'Syne', sans-serif;
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--accent);
+    background: rgba(245,166,35,0.1);
+    border: 1px solid rgba(245,166,35,0.2);
+    width: 32px; height: 32px;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+    border-radius: 4px;
+  }
+
+  h2 { font-family: 'Syne', sans-serif; font-size: 20px; font-weight: 700; letter-spacing: -0.02em; color: var(--text); }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 24px 28px;
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+
+  .card:hover { border-color: rgba(245,166,35,0.3); box-shadow: 0 0 30px rgba(245,166,35,0.05); }
+
+  p { color: var(--muted); margin-bottom: 12px; }
+  p:last-child { margin-bottom: 0; }
+  p strong { color: var(--text); font-weight: 500; }
+
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  @media(max-width: 600px) { .grid-2 { grid-template-columns: 1fr; } }
+
+  .mini-card {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 16px 18px;
+    transition: transform 0.15s, border-color 0.2s;
+  }
+
+  .mini-card:hover { transform: translateY(-2px); border-color: rgba(74,207,232,0.3); }
+
+  .mini-card-label { font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--accent3); margin-bottom: 8px; font-weight: 500; }
+  .mini-card p { font-size: 13px; margin: 0; }
+
+  .code-block {
+    background: #0d0d15;
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--accent3);
+    border-radius: 6px;
+    padding: 18px 20px;
+    font-size: 12.5px;
+    line-height: 1.9;
+    overflow-x: auto;
+    margin-top: 14px;
+    font-family: 'DM Mono', monospace;
+  }
+
+  .code-label { font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--muted); margin-bottom: 6px; margin-top: 16px; }
+
+  .cc { color: #4a4a6a; font-style: italic; }
+  .ck { color: var(--accent); }
+  .cf { color: var(--accent3); }
+  .cs { color: #8bc34a; }
+  .cn { color: var(--accent2); }
+  .cm { color: #c8c0f0; }
+
+  .steps { display: flex; flex-direction: column; }
+
+  .step { display: flex; gap: 18px; padding: 16px 0; border-bottom: 1px solid var(--border); }
+  .step:last-child { border-bottom: none; }
+
+  .step-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); margin-top: 7px; flex-shrink: 0; box-shadow: 0 0 10px rgba(245,166,35,0.5); }
+  .step-title { font-family: 'Syne', sans-serif; font-size: 14px; font-weight: 600; color: var(--text); margin-bottom: 4px; }
+  .step-body { color: var(--muted); font-size: 13px; }
+
+  .tip {
+    border: 1px solid rgba(74,207,232,0.2);
+    background: rgba(74,207,232,0.04);
+    border-radius: 6px;
+    padding: 14px 18px;
+    margin-top: 16px;
+    font-size: 13px;
+    color: var(--accent3);
+    display: flex; gap: 10px; align-items: flex-start;
+  }
+
+  .warn {
+    border: 1px solid rgba(232,93,74,0.2);
+    background: rgba(232,93,74,0.04);
+    border-radius: 6px;
+    padding: 14px 18px;
+    margin-top: 16px;
+    font-size: 13px;
+    color: var(--accent2);
+    display: flex; gap: 10px; align-items: flex-start;
+  }
+
+  .tip-icon { flex-shrink: 0; margin-top: 1px; opacity: 0.7; }
+
+  .tags { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 16px; }
+  .tag { font-size: 11px; letter-spacing: 0.05em; padding: 5px 12px; border-radius: 100px; border: 1px solid; font-weight: 500; }
+  .tag-y { color: var(--accent);  border-color: rgba(245,166,35,0.3); background: rgba(245,166,35,0.06); }
+  .tag-r { color: var(--accent2); border-color: rgba(232,93,74,0.3);  background: rgba(232,93,74,0.06); }
+  .tag-b { color: var(--accent3); border-color: rgba(74,207,232,0.3); background: rgba(74,207,232,0.06); }
+
+  .table-wrap { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th { text-align: left; padding: 10px 14px; font-family: 'Syne', sans-serif; font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); border-bottom: 1px solid var(--border); font-weight: 600; }
+  td { padding: 12px 14px; border-bottom: 1px solid rgba(42,42,58,0.5); color: var(--muted); vertical-align: top; font-size: 13px; }
+  td:first-child { color: var(--text); font-weight: 500; font-family: 'DM Mono', monospace; }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: rgba(255,255,255,0.015); }
+
+  .context-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 16px; }
+  @media(max-width:580px) { .context-grid { grid-template-columns: 1fr; } }
+
+  .ctx-box { border-radius: 6px; padding: 18px 20px; }
+  .ctx-box.filter { border: 1px solid rgba(245,166,35,0.3); background: rgba(245,166,35,0.04); }
+  .ctx-box.row    { border: 1px solid rgba(74,207,232,0.3);  background: rgba(74,207,232,0.04); }
+  .ctx-label { font-family: 'Syne', sans-serif; font-size: 13px; font-weight: 700; letter-spacing: 0.04em; margin-bottom: 8px; }
+  .ctx-box.filter .ctx-label { color: var(--accent); }
+  .ctx-box.row    .ctx-label { color: var(--accent3); }
+  .ctx-box p { font-size: 13px; margin: 0; }
+
+  .pattern { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; margin-bottom: 12px; overflow: hidden; }
+
+  .pattern-header { display: flex; align-items: center; gap: 14px; padding: 14px 20px; background: var(--surface2); border-bottom: 1px solid var(--border); }
+  .pattern-num { font-size: 10px; letter-spacing: 0.15em; color: var(--muted); font-weight: 700; flex-shrink: 0; }
+  .pattern-title { font-family: 'Syne', sans-serif; font-size: 14px; font-weight: 600; color: var(--text); flex: 1; }
+  .pattern-body { padding: 20px 20px 8px; }
+
+  .check-item { display: flex; gap: 14px; padding: 12px 0; border-bottom: 1px solid var(--border); font-size: 13px; color: var(--muted); align-items: flex-start; }
+  .check-item:last-child { border-bottom: none; }
+  .check-dot { width: 6px; height: 6px; border-radius: 50%; border: 1.5px solid var(--accent); margin-top: 6px; flex-shrink: 0; }
+  .check-item strong { color: var(--text); }
+
+  .footer { margin-top: 72px; padding-top: 24px; border-top: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; font-size: 11px; color: var(--muted); letter-spacing: 0.05em; }
+  .footer-badge { background: rgba(245,166,35,0.1); border: 1px solid rgba(245,166,35,0.2); color: var(--accent); padding: 5px 12px; border-radius: 4px; font-size: 11px; letter-spacing: 0.08em; font-family: 'Syne', sans-serif; font-weight: 700; }
+
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+</style>
+</head>
+<body>
+<div class="wrapper">
+
+  <!-- Hero -->
+  <div class="hero">
+    <div class="hero-label">Deep Dive · Power BI</div>
+    <h1>Data Analysis<span>Expressions</span></h1>
+    <p class="hero-sub">Master the formula language behind every Power BI calculation — from filter context to time intelligence.</p>
+    <div class="progress-row">
+      <div class="prog-seg"><div class="prog-seg-fill"></div></div>
+      <div class="prog-seg"><div class="prog-seg-fill"></div></div>
+      <div class="prog-seg"><div class="prog-seg-fill"></div></div>
+      <div class="prog-seg"><div class="prog-seg-fill"></div></div>
+      <div class="prog-seg"><div class="prog-seg-fill"></div></div>
+      <div class="prog-seg"><div class="prog-seg-fill"></div></div>
+      <div class="prog-seg"><div class="prog-seg-fill"></div></div>
+      <div class="prog-seg"><div class="prog-seg-fill"></div></div>
+      <div class="prog-seg"><div class="prog-seg-fill"></div></div>
+      <div class="prog-seg"><div class="prog-seg-fill"></div></div>
+    </div>
+  </div>
+
+  <!-- 01 What is DAX -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-num">01</div>
+      <h2>What is DAX?</h2>
+    </div>
+    <div class="card">
+      <p><strong>DAX (Data Analysis Expressions)</strong> is the formula language used in Power BI, Power Pivot, and Analysis Services. Unlike Excel formulas that operate on cell ranges, DAX operates on <strong>entire columns and tables</strong>.</p>
+      <p>The result of any DAX expression changes dynamically based on the filters applied to your report — that context-awareness is its core superpower.</p>
+      <div class="grid-2" style="margin-top:16px;">
+        <div class="mini-card">
+          <div class="mini-card-label">Measures</div>
+          <p>Dynamic calculations evaluated at query time inside the current filter context. Not stored as data. <strong>Use for aggregations.</strong></p>
+        </div>
+        <div class="mini-card">
+          <div class="mini-card-label">Calculated Columns</div>
+          <p>Computed row-by-row at refresh, stored in the model. Bloat file size. <strong>Use only for row-level attributes.</strong></p>
+        </div>
+        <div class="mini-card">
+          <div class="mini-card-label">Calculated Tables</div>
+          <p>Entire tables generated from DAX expressions. Useful for Date tables, disconnected slicers, or bridging tables.</p>
+        </div>
+        <div class="mini-card">
+          <div class="mini-card-label">Variables (VAR)</div>
+          <p>Store intermediate results inside a measure for readability and performance. Evaluated once, then reused everywhere.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 02 Context -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-num">02</div>
+      <h2>The Most Important Concept: Context</h2>
+    </div>
+    <div class="card">
+      <p>Everything in DAX revolves around <strong>evaluation context</strong>. Get this wrong and nothing makes sense. Get it right and DAX clicks.</p>
+      <div class="context-grid">
+        <div class="ctx-box filter">
+          <div class="ctx-label">Filter Context</div>
+          <p>The active filters on your data — from slicers, visuals, page filters, and CALCULATE. Determines which rows are included in aggregations.</p>
+        </div>
+        <div class="ctx-box row">
+          <div class="ctx-label">Row Context</div>
+          <p>Exists when iterating row-by-row inside calculated columns or iterator functions (SUMX, AVERAGEX…). Knows "which row we're on" at each step.</p>
+        </div>
+      </div>
+      <div class="warn">
+        <span class="tip-icon">!</span>
+        <span>Row context does <strong>not</strong> automatically become filter context. Inside iterators, use CALCULATE() to transition row context into filter context when referencing measures.</span>
+      </div>
+      <div class="code-label">Context transition example</div>
+      <div class="code-block">
+<span class="cc">// Running total — accumulates correctly using filter context</span><br>
+<span class="cm">Running Total</span> =<br>
+&nbsp;&nbsp;<span class="cf">CALCULATE</span>(<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="cf">SUM</span>(Sales[Amount]),<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="cf">FILTER</span>(<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="cf">ALL</span>(DimDate),<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;DimDate[Date] &lt;= <span class="cf">MAX</span>(DimDate[Date])<br>
+&nbsp;&nbsp;&nbsp;&nbsp;)<br>
+&nbsp;&nbsp;)
+      </div>
+    </div>
+  </div>
+
+  <!-- 03 CALCULATE -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-num">03</div>
+      <h2>CALCULATE — The King of DAX</h2>
+    </div>
+    <div class="card">
+      <p><strong>CALCULATE</strong> evaluates an expression in a modified filter context. It is the single most important DAX function — everything else builds on it.</p>
+      <div class="code-label">Syntax</div>
+      <div class="code-block">
+<span class="cf">CALCULATE</span>(<span class="ck">&lt;expression&gt;</span>, <span class="ck">[filter1]</span>, <span class="ck">[filter2]</span>, ...)
+      </div>
+      <div class="code-label">Common patterns</div>
+      <div class="code-block">
+<span class="cc">// Add a filter</span><br>
+<span class="cm">East Sales</span> = <span class="cf">CALCULATE</span>(<span class="cf">SUM</span>(Sales[Amount]), Region[Name] = <span class="cs">"East"</span>)<br><br>
+<span class="cc">// Remove all filters from a column</span><br>
+<span class="cm">All Years Sales</span> = <span class="cf">CALCULATE</span>(<span class="cf">SUM</span>(Sales[Amount]), <span class="cf">ALL</span>(DimDate[Year]))<br><br>
+<span class="cc">// % of total using VAR</span><br>
+<span class="cm">Category Share</span> =<br>
+&nbsp;&nbsp;<span class="ck">VAR</span> Cat   = <span class="cf">CALCULATE</span>(<span class="cf">SUM</span>(Sales[Amount]))<br>
+&nbsp;&nbsp;<span class="ck">VAR</span> Total = <span class="cf">CALCULATE</span>(<span class="cf">SUM</span>(Sales[Amount]), <span class="cf">ALL</span>(Product[Category]))<br>
+&nbsp;&nbsp;<span class="ck">RETURN</span> <span class="cf">DIVIDE</span>(Cat, Total, <span class="cn">0</span>)<br><br>
+<span class="cc">// Combine multiple filters (AND logic by default)</span><br>
+<span class="cm">East High Value</span> = <span class="cf">CALCULATE</span>(<br>
+&nbsp;&nbsp;<span class="cf">SUM</span>(Sales[Amount]),<br>
+&nbsp;&nbsp;Region[Name] = <span class="cs">"East"</span>,<br>
+&nbsp;&nbsp;Sales[Amount] &gt; <span class="cn">1000</span><br>
+)
+      </div>
+      <div class="tip">
+        <span class="tip-icon">→</span>
+        <span>Filter arguments inside CALCULATE are combined with AND by default. For OR logic, use FILTER() with the || operator.</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- 04 Iterators -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-num">04</div>
+      <h2>Iterator Functions (X Functions)</h2>
+    </div>
+    <div class="card">
+      <p>Iterators loop through a table row-by-row, evaluate an expression per row, then aggregate. Pattern: <strong>FUNCTIONX(table, expression)</strong>.</p>
+      <div class="code-label">Common iterators</div>
+      <div class="code-block">
+<span class="cc">// Revenue = Qty × Price, summed across all rows</span><br>
+<span class="cm">Revenue</span> = <span class="cf">SUMX</span>(Sales, Sales[Qty] * Sales[UnitPrice])<br><br>
+<span class="cc">// Average order value (not a simple column average)</span><br>
+<span class="cm">Avg Order Value</span> = <span class="cf">AVERAGEX</span>(<br>
+&nbsp;&nbsp;<span class="cf">VALUES</span>(Sales[OrderID]),<br>
+&nbsp;&nbsp;<span class="cf">CALCULATE</span>(<span class="cf">SUM</span>(Sales[Amount]))<br>
+)<br><br>
+<span class="cc">// Count rows matching a condition</span><br>
+<span class="cm">Big Orders</span> = <span class="cf">COUNTX</span>(<span class="cf">FILTER</span>(Sales, Sales[Amount] &gt; <span class="cn">500</span>), Sales[OrderID])<br><br>
+<span class="cc">// Minimum margin % across products</span><br>
+<span class="cm">Min Margin %</span> = <span class="cf">MINX</span>(Product, <span class="cf">DIVIDE</span>([Profit], [Revenue], <span class="cn">0</span>))
+      </div>
+      <div class="warn">
+        <span class="tip-icon">!</span>
+        <span>Don't use SUMX where a simple SUM works — iterators are slower. Use them only when you need row-level logic before aggregating.</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- 05 Filter Functions -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-num">05</div>
+      <h2>Filter Functions</h2>
+    </div>
+    <div class="card">
+      <div class="code-block">
+<span class="cc">// ALL — remove all filters from a table or column</span><br>
+<span class="cf">ALL</span>(Sales)&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="cc">// entire table</span><br>
+<span class="cf">ALL</span>(DimDate[Year])&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="cc">// just one column</span><br><br>
+<span class="cc">// ALLEXCEPT — remove all filters EXCEPT specified columns</span><br>
+<span class="cf">ALLEXCEPT</span>(Sales, Sales[Region])<br><br>
+<span class="cc">// ALLSELECTED — respect slicer selections, ignore visual filters</span><br>
+<span class="cm">% of Selection</span> = <span class="cf">DIVIDE</span>(<br>
+&nbsp;&nbsp;[Sales],<br>
+&nbsp;&nbsp;<span class="cf">CALCULATE</span>([Sales], <span class="cf">ALLSELECTED</span>(Product[Category]))<br>
+)<br><br>
+<span class="cc">// KEEPFILTERS — add filter without overriding existing ones</span><br>
+<span class="cf">CALCULATE</span>([Sales], <span class="cf">KEEPFILTERS</span>(Region[Name] = <span class="cs">"East"</span>))<br><br>
+<span class="cc">// HASONEVALUE — check if exactly one value is filtered</span><br>
+<span class="cf">IF</span>(<span class="cf">HASONEVALUE</span>(Region[Name]), <span class="cf">VALUES</span>(Region[Name]), <span class="cs">"Multiple"</span>)
+      </div>
+    </div>
+  </div>
+
+  <!-- 06 Time Intelligence -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-num">06</div>
+      <h2>Time Intelligence</h2>
+    </div>
+    <div class="card">
+      <p>Time intelligence requires a <strong>proper Date table</strong> marked as "Date Table" in Power BI, with a contiguous date column and no gaps.</p>
+      <div class="tip">
+        <span class="tip-icon">→</span>
+        <span>Create your Date table with <strong>DimDate = CALENDARAUTO()</strong>, then mark it as a Date Table under Table Tools. Add Year, Month, Quarter as calculated columns on that table.</span>
+      </div>
+      <div class="code-label">Essential time intelligence patterns</div>
+      <div class="code-block">
+<span class="cc">// Year / Quarter / Month to date</span><br>
+<span class="cm">Sales YTD</span> = <span class="cf">TOTALYTD</span>([Sales], DimDate[Date])<br>
+<span class="cm">Sales QTD</span> = <span class="cf">TOTALQTD</span>([Sales], DimDate[Date])<br>
+<span class="cm">Sales MTD</span> = <span class="cf">TOTALMTD</span>([Sales], DimDate[Date])<br><br>
+<span class="cc">// Same period last year</span><br>
+<span class="cm">Sales LY</span> = <span class="cf">CALCULATE</span>([Sales], <span class="cf">SAMEPERIODLASTYEAR</span>(DimDate[Date]))<br><br>
+<span class="cc">// Year-over-year growth %</span><br>
+<span class="cm">YoY %</span> =<br>
+&nbsp;&nbsp;<span class="ck">VAR</span> Current = [Sales]<br>
+&nbsp;&nbsp;<span class="ck">VAR</span> PY = <span class="cf">CALCULATE</span>([Sales], <span class="cf">SAMEPERIODLASTYEAR</span>(DimDate[Date]))<br>
+&nbsp;&nbsp;<span class="ck">RETURN</span> <span class="cf">DIVIDE</span>(Current - PY, PY, <span class="cn">0</span>)<br><br>
+<span class="cc">// Rolling last 12 months</span><br>
+<span class="cm">Rolling 12M</span> = <span class="cf">CALCULATE</span>(<br>
+&nbsp;&nbsp;[Sales],<br>
+&nbsp;&nbsp;<span class="cf">DATESINPERIOD</span>(DimDate[Date], <span class="cf">LASTDATE</span>(DimDate[Date]), -<span class="cn">12</span>, MONTH)<br>
+)<br><br>
+<span class="cc">// Previous month</span><br>
+<span class="cm">Sales PM</span> = <span class="cf">CALCULATE</span>([Sales], <span class="cf">PREVIOUSMONTH</span>(DimDate[Date]))
+      </div>
+    </div>
+  </div>
+
+  <!-- 07 Relationships -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-num">07</div>
+      <h2>Working Across Relationships</h2>
+    </div>
+    <div class="card">
+      <div class="code-block">
+<span class="cc">// RELATED — lookup from the "one" side (use in calculated columns)</span><br>
+Region = <span class="cf">RELATED</span>(Customer[Region])<br><br>
+<span class="cc">// RELATEDTABLE — get all related rows from the "many" side</span><br>
+<span class="cm">Order Count</span> = <span class="cf">COUNTROWS</span>(<span class="cf">RELATEDTABLE</span>(Orders))<br><br>
+<span class="cc">// USERELATIONSHIP — activate an inactive relationship</span><br>
+<span class="cm">Sales by Ship Date</span> = <span class="cf">CALCULATE</span>(<br>
+&nbsp;&nbsp;<span class="cf">SUM</span>(Orders[Amount]),<br>
+&nbsp;&nbsp;<span class="cf">USERELATIONSHIP</span>(Orders[ShipDate], DimDate[Date])<br>
+)<br><br>
+<span class="cc">// CROSSFILTER — change filter direction dynamically</span><br>
+<span class="cm">Customers with Sales</span> = <span class="cf">CALCULATE</span>(<br>
+&nbsp;&nbsp;<span class="cf">DISTINCTCOUNT</span>(Customer[CustomerID]),<br>
+&nbsp;&nbsp;<span class="cf">CROSSFILTER</span>(Sales[CustomerID], Customer[CustomerID], BOTH)<br>
+)
+      </div>
+    </div>
+  </div>
+
+  <!-- 08 Function Reference -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-num">08</div>
+      <h2>Function Quick Reference</h2>
+    </div>
+    <div class="card" style="padding:0; overflow:hidden;">
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>Function</th><th>Category</th><th>What It Does</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>CALCULATE</td><td><span class="tag tag-y" style="font-size:10px;padding:3px 10px;">Filter</span></td><td>Evaluate expression in a modified filter context</td></tr>
+            <tr><td>FILTER</td><td><span class="tag tag-y" style="font-size:10px;padding:3px 10px;">Filter</span></td><td>Return a filtered subset of a table</td></tr>
+            <tr><td>ALL / ALLEXCEPT</td><td><span class="tag tag-y" style="font-size:10px;padding:3px 10px;">Filter</span></td><td>Remove filters from a table or specific columns</td></tr>
+            <tr><td>ALLSELECTED</td><td><span class="tag tag-y" style="font-size:10px;padding:3px 10px;">Filter</span></td><td>Ignore visual filters, keep slicer selections</td></tr>
+            <tr><td>KEEPFILTERS</td><td><span class="tag tag-y" style="font-size:10px;padding:3px 10px;">Filter</span></td><td>Add filter without overriding existing context</td></tr>
+            <tr><td>SUMX / AVERAGEX</td><td><span class="tag tag-b" style="font-size:10px;padding:3px 10px;">Iterator</span></td><td>Row-by-row sum / average, then aggregate</td></tr>
+            <tr><td>MINX / MAXX / RANKX</td><td><span class="tag tag-b" style="font-size:10px;padding:3px 10px;">Iterator</span></td><td>Row-by-row min, max, or rank</td></tr>
+            <tr><td>TOTALYTD / QTD / MTD</td><td><span class="tag tag-r" style="font-size:10px;padding:3px 10px;">Time</span></td><td>Cumulative total from start of year/quarter/month</td></tr>
+            <tr><td>SAMEPERIODLASTYEAR</td><td><span class="tag tag-r" style="font-size:10px;padding:3px 10px;">Time</span></td><td>Equivalent dates from the prior year</td></tr>
+            <tr><td>DATESINPERIOD</td><td><span class="tag tag-r" style="font-size:10px;padding:3px 10px;">Time</span></td><td>Dates within a rolling window</td></tr>
+            <tr><td>PREVIOUSMONTH / YEAR</td><td><span class="tag tag-r" style="font-size:10px;padding:3px 10px;">Time</span></td><td>Dates from the prior period</td></tr>
+            <tr><td>SUM / COUNT / MAX</td><td><span class="tag tag-y" style="font-size:10px;padding:3px 10px;">Aggregate</span></td><td>Basic column aggregations</td></tr>
+            <tr><td>DISTINCTCOUNT</td><td><span class="tag tag-y" style="font-size:10px;padding:3px 10px;">Aggregate</span></td><td>Count unique values in a column</td></tr>
+            <tr><td>DIVIDE</td><td><span class="tag tag-y" style="font-size:10px;padding:3px 10px;">Aggregate</span></td><td>Safe division with a fallback value</td></tr>
+            <tr><td>VALUES / DISTINCT</td><td><span class="tag tag-b" style="font-size:10px;padding:3px 10px;">Table</span></td><td>Unique values as a table in current filter context</td></tr>
+            <tr><td>RELATED</td><td><span class="tag tag-b" style="font-size:10px;padding:3px 10px;">Relation</span></td><td>Lookup from the "one" side of a relationship</td></tr>
+            <tr><td>USERELATIONSHIP</td><td><span class="tag tag-b" style="font-size:10px;padding:3px 10px;">Relation</span></td><td>Activate an inactive relationship in a measure</td></tr>
+            <tr><td>SWITCH(TRUE(), ...)</td><td><span class="tag tag-y" style="font-size:10px;padding:3px 10px;">Logic</span></td><td>Multi-branch conditional — replaces nested IFs</td></tr>
+            <tr><td>SELECTEDVALUE</td><td><span class="tag tag-y" style="font-size:10px;padding:3px 10px;">Logic</span></td><td>Get current slicer selection (one value or blank)</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- 09 Patterns -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-num">09</div>
+      <h2>8 Patterns You'll Use Every Day</h2>
+    </div>
+
+    <div class="pattern">
+      <div class="pattern-header">
+        <span class="pattern-num">P·01</span>
+        <span class="pattern-title">% of Total</span>
+        <span class="tag tag-y" style="font-size:10px;padding:3px 10px;">Filter</span>
+      </div>
+      <div class="pattern-body">
+        <div class="code-block">
+<span class="cm">% of Total Sales</span> = <span class="cf">DIVIDE</span>([Sales], <span class="cf">CALCULATE</span>([Sales], <span class="cf">ALL</span>()), <span class="cn">0</span>)
+        </div>
+      </div>
+    </div>
+
+    <div class="pattern">
+      <div class="pattern-header">
+        <span class="pattern-num">P·02</span>
+        <span class="pattern-title">% of Parent (Share within Category)</span>
+        <span class="tag tag-y" style="font-size:10px;padding:3px 10px;">Filter</span>
+      </div>
+      <div class="pattern-body">
+        <div class="code-block">
+<span class="cm">% of Category</span> = <span class="cf">DIVIDE</span>(<br>
+&nbsp;&nbsp;[Sales],<br>
+&nbsp;&nbsp;<span class="cf">CALCULATE</span>([Sales], <span class="cf">ALLEXCEPT</span>(Product, Product[Category])),<br>
+&nbsp;&nbsp;<span class="cn">0</span><br>
+)
+        </div>
+      </div>
+    </div>
+
+    <div class="pattern">
+      <div class="pattern-header">
+        <span class="pattern-num">P·03</span>
+        <span class="pattern-title">Dynamic Ranking</span>
+        <span class="tag tag-b" style="font-size:10px;padding:3px 10px;">Iterator</span>
+      </div>
+      <div class="pattern-body">
+        <div class="code-block">
+<span class="cm">Product Rank</span> = <span class="cf">RANKX</span>(<span class="cf">ALL</span>(Product[Name]), [Sales], , DESC, DENSE)
+        </div>
+      </div>
+    </div>
+
+    <div class="pattern">
+      <div class="pattern-header">
+        <span class="pattern-num">P·04</span>
+        <span class="pattern-title">Cumulative / Running Total</span>
+        <span class="tag tag-r" style="font-size:10px;padding:3px 10px;">Time</span>
+      </div>
+      <div class="pattern-body">
+        <div class="code-block">
+<span class="cm">Running Total</span> = <span class="cf">CALCULATE</span>(<br>
+&nbsp;&nbsp;[Sales],<br>
+&nbsp;&nbsp;<span class="cf">FILTER</span>(<span class="cf">ALL</span>(DimDate[Date]), DimDate[Date] &lt;= <span class="cf">MAX</span>(DimDate[Date]))<br>
+)
+        </div>
+      </div>
+    </div>
+
+    <div class="pattern">
+      <div class="pattern-header">
+        <span class="pattern-num">P·05</span>
+        <span class="pattern-title">30-Day Moving Average</span>
+        <span class="tag tag-r" style="font-size:10px;padding:3px 10px;">Time</span>
+      </div>
+      <div class="pattern-body">
+        <div class="code-block">
+<span class="cm">30-Day Avg</span> = <span class="cf">CALCULATE</span>(<br>
+&nbsp;&nbsp;[Sales],<br>
+&nbsp;&nbsp;<span class="cf">DATESINPERIOD</span>(DimDate[Date], <span class="cf">LASTDATE</span>(DimDate[Date]), -<span class="cn">30</span>, DAY)<br>
+) / <span class="cn">30</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="pattern">
+      <div class="pattern-header">
+        <span class="pattern-num">P·06</span>
+        <span class="pattern-title">KPI Status with VAR + SWITCH</span>
+        <span class="tag tag-y" style="font-size:10px;padding:3px 10px;">Logic</span>
+      </div>
+      <div class="pattern-body">
+        <div class="code-block">
+<span class="cm">Sales Status</span> =<br>
+&nbsp;&nbsp;<span class="ck">VAR</span> Target = <span class="cn">100000</span><br>
+&nbsp;&nbsp;<span class="ck">VAR</span> Actual = [Sales]<br>
+&nbsp;&nbsp;<span class="ck">VAR</span> Gap    = <span class="cf">DIVIDE</span>(Actual - Target, Target)<br>
+&nbsp;&nbsp;<span class="ck">RETURN</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="cf">SWITCH</span>(<span class="ck">TRUE</span>(),<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Gap &gt;= <span class="cn">0.05</span>, <span class="cs">"🟢 Above Target"</span>,<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Gap &gt;= <span class="cn">0</span>,    <span class="cs">"🟡 On Track"</span>,<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="cs">"🔴 Below Target"</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;)
+        </div>
+      </div>
+    </div>
+
+    <div class="pattern">
+      <div class="pattern-header">
+        <span class="pattern-num">P·07</span>
+        <span class="pattern-title">Disconnected Slicer for Measure Switching</span>
+        <span class="tag tag-y" style="font-size:10px;padding:3px 10px;">Filter</span>
+      </div>
+      <div class="pattern-body">
+        <div class="code-block">
+<span class="cc">// Create table: MetricTable = {"Sales", "Profit", "Margin"}</span><br>
+<span class="cm">Selected Metric</span> =<br>
+&nbsp;&nbsp;<span class="cf">SWITCH</span>(<span class="cf">SELECTEDVALUE</span>(MetricTable[Metric]),<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="cs">"Sales"</span>,  [Sales],<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="cs">"Profit"</span>, [Profit],<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="cs">"Margin"</span>, [Margin %],<br>
+&nbsp;&nbsp;&nbsp;&nbsp;[Sales]<span class="cc"> // default</span><br>
+&nbsp;&nbsp;)
+        </div>
+      </div>
+    </div>
+
+    <div class="pattern">
+      <div class="pattern-header">
+        <span class="pattern-num">P·08</span>
+        <span class="pattern-title">Budget vs Actual Variance Label</span>
+        <span class="tag tag-y" style="font-size:10px;padding:3px 10px;">Aggregate</span>
+      </div>
+      <div class="pattern-body">
+        <div class="code-block">
+<span class="cm">Variance</span>   = [Actual Sales] - [Budget]<br>
+<span class="cm">Variance %</span> = <span class="cf">DIVIDE</span>([Variance], [Budget], <span class="cn">0</span>)<br>
+<span class="cm">Variance Label</span> =<br>
+&nbsp;&nbsp;<span class="ck">VAR</span> V = [Variance %]<br>
+&nbsp;&nbsp;<span class="ck">RETURN</span> <span class="cf">IF</span>(V &gt; <span class="cn">0</span>, <span class="cs">"▲ "</span>, <span class="cs">"▼ "</span>) &amp; <span class="cf">FORMAT</span>(<span class="cf">ABS</span>(V), <span class="cs">"0.0%"</span>)
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 10 Best Practices -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-num">10</div>
+      <h2>Best Practices Checklist</h2>
+    </div>
+    <div class="card">
+      <div class="check-item">
+        <div class="check-dot"></div>
+        <span><strong>Always use DIVIDE() instead of /</strong> — avoids divide-by-zero errors; returns BLANK cleanly instead of crashing visuals.</span>
+      </div>
+      <div class="check-item">
+        <div class="check-dot"></div>
+        <span><strong>Use VAR/RETURN in every complex measure</strong> — improves readability, debuggability, and performance (expressions evaluated once, not repeatedly).</span>
+      </div>
+      <div class="check-item">
+        <div class="check-dot"></div>
+        <span><strong>Prefer measures over calculated columns</strong> — measures evaluate in filter context; calculated columns consume RAM and bloat model size.</span>
+      </div>
+      <div class="check-item">
+        <div class="check-dot"></div>
+        <span><strong>Store all measures in a dedicated measure table</strong> — create an empty table, put all measures there. Keeps the model organized and navigable.</span>
+      </div>
+      <div class="check-item">
+        <div class="check-dot"></div>
+        <span><strong>Use SWITCH(TRUE(), ...) instead of nested IFs</strong> — far more readable for multi-condition branching logic.</span>
+      </div>
+      <div class="check-item">
+        <div class="check-dot"></div>
+        <span><strong>Mark your Date table</strong> — required for all time intelligence functions to work. Do this before building any time-based measures.</span>
+      </div>
+      <div class="check-item">
+        <div class="check-dot"></div>
+        <span><strong>Don't use SUMX where SUM works</strong> — iterators carry overhead. Use them only when row-level logic is needed before aggregating.</span>
+      </div>
+      <div class="check-item">
+        <div class="check-dot"></div>
+        <span><strong>Test measures with a Matrix visual</strong> — rows = one dimension, values = your measure. Fastest way to verify filter context behavior.</span>
+      </div>
+      <div class="check-item">
+        <div class="check-dot"></div>
+        <span><strong>Use Performance Analyzer to find slow measures</strong> — View → Performance Analyzer shows render time per visual. Fix DAX before tuning the model.</span>
+      </div>
+      <div class="check-item">
+        <div class="check-dot"></div>
+        <span><strong>Use DAX Studio for deep debugging</strong> — free external tool with query plans, server timings, and the ability to run DAX directly against your model.</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <div class="footer">
+    <span>DAX Crash Course · Power BI Deep Dive Series</span>
+    <span class="footer-badge">10 MODULES</span>
+  </div>
+
+</div>
+</body>
+</html>
